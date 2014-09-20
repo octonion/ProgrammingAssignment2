@@ -1,0 +1,89 @@
+
+R version 3.1.1 (2014-07-10) -- "Sock it to Me"
+Copyright (C) 2014 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ## Put comments here that give an overall description of what your
+> ## functions do
+> 
+> # makeCacheMatrix: This function creates a special "matrix" object that
+> # can cache its inverse.
+> 
+> # object$setinverse() invokes the R matrix "solve" function
+> # object$getinverse() retrieves a cached inverse if available,
+> #   otherwise, it computes the inverse and caches it
+> 
+> # To see the original matrix use object$get()
+> 
+> makeCacheMatrix <- function(x = matrix()) {
++     i <- NULL
++     set <- function(y) {
++         x <<- y
++         i <<- NULL
++     }
++     get <- function() x
++     setinverse <- function(solve) i <<- solve
++     getinverse <- function() i
++     list(set = set, get = get,
++          setinverse = setinverse,
++          getinverse = getinverse)
++ }
+> 
+> # cacheSolve: This function computes the inverse of the special "matrix"
+> # returned by makeCacheMatrix above. If the inverse has already been
+> # calculated (and the matrix has not changed), then the cachesolve should
+> # retrieve the inverse from the cache.
+> 
+> cacheSolve <- function(x, ...) {
++     ## Return a matrix that is the inverse of 'x'
++     i <- x$getinverse()
++     if(!is.null(i)) {
++         message("getting cached data")
++         flush.console()
++         return(i)
++     }
++     data <- x$get()
++     i <- solve(data, ...)
++     x$setinverse(i)
++     return(i)
++ }
+> 
+> # Example matrix
+> m <- matrix(data = c(2,0,0,2), nrow = 2, ncol = 2)
+> 
+> # Convert to cache object
+> M <- makeCacheMatrix(m)
+> 
+> # Show original matrix
+> M$get()
+     [,1] [,2]
+[1,]    2    0
+[2,]    0    2
+> 
+> # Show inverse; uncached
+> cacheSolve(M)
+     [,1] [,2]
+[1,]  0.5  0.0
+[2,]  0.0  0.5
+> 
+> # Show inverse; cached
+> cacheSolve(M)
+getting cached data
+     [,1] [,2]
+[1,]  0.5  0.0
+[2,]  0.0  0.5
+> 
